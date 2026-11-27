@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sumbreak 道場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#ECEFF2; --surface:#F8F9FB; --ink:#1B2433; --muted:#5B6677; --line:#C9D0DA; --hole:#B4BDC9;
+  --gozu:#24407A; --on-gozu:#FFFFFF; --stone:#6F7886; --oribe:#3E6A4D; --warn:#B0442F; --good:#2F6B47;
+  --t0:#D6E2F1; --t1:#C9E3CF; --t2:#F2D69C; --t3:#E9A285; --t4:#C8553D; --t5:#3F7A5C; --t6:#2F5D9E; --t7:#6B4C8A; --t8:#2B2B33;
+  --x0:#1B2433; --x1:#1B2433; --x2:#1B2433; --x3:#1B2433; --x4:#FFFFFF; --x5:#FFFFFF; --x6:#FFFFFF; --x7:#FFFFFF; --x8:#FFFFFF;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#131821; --surface:#1B222E; --ink:#E6EAF0; --muted:#9AA4B3; --line:#2F3848; --hole:#3B4558;
+    --gozu:#8FAEE0; --on-gozu:#0F1726; --oribe:#8CBB9B; --warn:#E5907E; --good:#8CCBA2;
+    --t0:#3A4A63; --t1:#3E6650; --t2:#C9A453; --t3:#D08A6E; --t4:#DA6A52; --t5:#62A381; --t6:#7099DA; --t7:#A88BCB; --t8:#DAD6CE;
+    --x0:#E6EAF0; --x1:#E6EAF0; --x2:#15181F; --x3:#15181F; --x4:#15181F; --x5:#15181F; --x6:#15181F; --x7:#15181F; --x8:#15181F;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#131821; --surface:#1B222E; --ink:#E6EAF0; --muted:#9AA4B3; --line:#2F3848; --hole:#3B4558;
+  --gozu:#8FAEE0; --on-gozu:#0F1726; --oribe:#8CBB9B; --warn:#E5907E; --good:#8CCBA2;
+  --t0:#3A4A63; --t1:#3E6650; --t2:#C9A453; --t3:#D08A6E; --t4:#DA6A52; --t5:#62A381; --t6:#7099DA; --t7:#A88BCB; --t8:#DAD6CE;
+  --x0:#E6EAF0; --x1:#E6EAF0; --x2:#15181F; --x3:#15181F; --x4:#15181F; --x5:#15181F; --x6:#15181F; --x7:#15181F; --x8:#15181F;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Zen Maru Gothic","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-weight:500;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 20px 48px}
+header h1{margin:0;font-size:clamp(30px,5.5vw,44px);font-weight:900;letter-spacing:.01em;line-height:1.15}
+.lede{margin:.4em 0 0;color:var(--muted);max-width:34em}
+.bar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:22px 0 20px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.seg button{border:0;background:none;padding:7px 15px;border-radius:999px;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--gozu);color:var(--on-gozu)}
+.seg button:focus-visible,.act:focus-visible{outline:3px solid var(--gozu);outline-offset:2px}
+.seg-label{font-size:14px;color:var(--muted);margin-right:6px}
+.arena{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:32px;align-items:start}
+@media (max-width:780px){.arena{grid-template-columns:1fr}}
+.status{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px;min-height:34px}
+#msg{font-size:18px;font-weight:700}
+#msg[data-tone="bad"]{color:var(--warn)}
+#msg[data-tone="good"]{color:var(--good)}
+#timer{font-variant-numeric:tabular-nums;font-size:24px;font-weight:900;color:var(--gozu);white-space:nowrap}
+.boards{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+.boardbox{flex:1 1 300px;max-width:460px}
+.boardbox.ai{flex:0 1 210px;max-width:240px}
+.boardbox h2{margin:0 0 8px;font-size:15px;font-weight:700;color:var(--muted)}
+.boardbox.ai h2{color:var(--oribe)}
+.board{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:6px;padding:10px;background:var(--surface);
+  border:1.5px solid var(--line);border-radius:20px;touch-action:none;user-select:none;-webkit-user-select:none}
+.boardbox.ai .board{gap:4px;padding:7px;border-color:var(--oribe);border-radius:14px}
+.cell{aspect-ratio:1;border:0;padding:0;margin:0;background:transparent;border-radius:50%;display:grid;place-items:center;font:inherit;color:inherit;cursor:pointer;position:relative}
+.cell:focus-visible{outline:3px solid var(--gozu);outline-offset:1px}
+.cell.empty::before{content:"";width:18%;aspect-ratio:1;border-radius:50%;background:var(--line)}
+.cell.hole{cursor:default;border-radius:12px;background:repeating-linear-gradient(45deg,transparent 0 6px,var(--hole) 6px 7.5px)}
+.tile{position:relative;width:88%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-weight:900;
+  font-size:clamp(15px,4.4vw,27px);font-variant-numeric:tabular-nums;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.14),inset 0 3px 0 rgba(255,255,255,.28)}
+.boardbox.ai .tile{font-size:clamp(11px,2.6vw,15px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.14)}
+.cell.sel .tile{outline:3px solid var(--ink);outline-offset:3px;transform:scale(1.04)}
+.cell.target .tile{outline:2.5px dashed var(--gozu);outline-offset:3px}
+.cell.pivot .tile::after{content:"";position:absolute;bottom:9%;left:50%;width:15%;aspect-ratio:1;margin-left:-7.5%;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--warn),0 0 0 3.5px #fff}
+.cell.hint-from .tile,.cell.hint-to .tile{outline:4px solid var(--gozu);outline-offset:3px;animation:pulse .7s ease-in-out infinite alternate}
+.cell.hint-to .tile{outline-style:dashed}
+.cell.ai-last .tile{outline:3px solid var(--oribe);outline-offset:3px}
+.cell.drag-over .tile{outline:3.5px solid var(--gozu);outline-offset:3px;transform:scale(1.08)}
+.cell.pop .tile{animation:pop .24s ease-out}
+@keyframes pop{0%{transform:scale(.72)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes pulse{from{outline-offset:2px}to{outline-offset:6px}}
+.under{margin:10px 2px 0;font-size:14px;color:var(--muted);min-height:1.6em}
+.panel{display:flex;flex-direction:column;gap:18px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.act{font:inherit;font-weight:700;padding:8px 15px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.act.primary{background:var(--gozu);border-color:var(--gozu);color:var(--on-gozu)}
+.act:disabled{opacity:.4;cursor:default}
+.toggles{display:flex;flex-direction:column;gap:6px;font-size:15px}
+.toggles label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.toggles input{accent-color:var(--gozu);width:17px;height:17px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--warn);vertical-align:middle;margin:0 2px}
+.stat{font-size:14px;color:var(--muted);margin:0}
+.log h3,.sop summary{font-size:15px;font-weight:700;margin:0 0 6px}
+.log ol{margin:0;padding-left:1.6em;max-height:210px;overflow:auto;font-size:14px;font-variant-numeric:tabular-nums}
+.log li.ai{color:var(--oribe)}
+.log li.sys{list-style:none;color:var(--muted);margin-left:-1.2em}
+.sop{font-size:14.5px;border-top:1.5px solid var(--line);padding-top:12px}
+.sop summary{cursor:pointer}
+.sop p{margin:.5em 0}
+.cell.frozen .tile{filter:saturate(.3)}
+.cell.frozen::after{content:attr(data-sec);position:absolute;inset:6%;border-radius:50%;display:grid;place-items:center;
+  font-weight:900;font-size:clamp(13px,3.6vw,22px);color:#fff;opacity:.93;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.2),transparent 55%),var(--stone);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.boardbox.ai .cell.frozen::after{font-size:11px}
+.cell.drop::after{animation:drop .3s ease-in}
+@keyframes drop{0%{transform:translateY(-45%) scale(1.25);opacity:0}100%{transform:none;opacity:.93}}
+.incoming{color:var(--warn);font-weight:700}
+.pips{letter-spacing:.15em;margin-left:.5em;color:var(--gozu)}
+.boardbox.ai .pips{color:var(--oribe)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Sumbreak 道場</h1>
+    <p class="lede">把相鄰、數字相同的兩格合起來，合到只剩一格。練 SOP、跟 AI 比速度，或丟石頭互相干擾。</p>
+  </header>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="模式" id="modeSeg">
+      <button data-v="practice" aria-pressed="true">練習</button>
+      <button data-v="race" aria-pressed="false">競速</button>
+      <button data-v="stone" aria-pressed="false">石頭對戰</button>
+    </div>
+    <div><span class="seg-label">題目</span><div class="seg" role="group" aria-label="題目難度" id="diffSeg">
+      <button data-v="easy" aria-pressed="false">入門</button>
+      <button data-v="normal" aria-pressed="true">標準</button>
+      <button data-v="hard" aria-pressed="false">困難</button>
+    </div></div>
+    <div data-show="race stone"><span class="seg-label">AI</span><div class="seg" role="group" aria-label="AI 強度" id="lvlSeg">
+      <button data-v="casual" aria-pressed="false">悠閒</button>
+      <button data-v="normal" aria-pressed="true">普通</button>
+      <button data-v="hard" aria-pressed="false">高手</button>
+    </div></div>
+  </div>
+
+  <div class="arena">
+    <section>
+      <div class="status"><div id="msg" aria-live="polite"></div><div id="timer"></div></div>
+      <div class="boards">
+        <div class="boardbox"><h2 id="youTitle">你的盤面</h2><div class="board" id="you-board"></div>
+          <p class="under" id="under"></p></div>
+        <div class="boardbox ai" id="ai-box" hidden><h2 id="aiTitle">AI 的盤面</h2><div class="board" id="ai-board"></div>
+          <p class="under" id="aiUnder"></p></div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="btns">
+        <button class="act primary" id="bNew">新題目</button>
+        <button class="act" id="bReset">重來</button>
+        <button class="act" id="bUndo" data-show="practice">上一步</button>
+        <button class="act" id="bHint">提示</button>
+        <button class="act" id="bAuto" data-show="practice">自動解</button>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="tCut" checked> 標出樞紐格 <span class="dot" aria-hidden="true"></span></label>
+        <label data-show="practice"><input type="checkbox" id="tInfo" checked> 顯示開局分析</label>
+      </div>
+      <p class="stat" id="best" data-show="practice"></p>
+      <div class="log"><h3>步驟紀錄</h3><ol id="log"></ol></div>
+      <details class="sop" open>
+        <summary>解題 SOP</summary>
+        <p>拖曳時，被拖的那格會變空，結果留在目標格。所以每一步其實是在決定「哪一格要消失」。</p>
+        <p>帶紅點 <span class="dot" aria-hidden="true"></span> 的是樞紐格：它一消失，剩下的格子就會斷成兩塊，永遠合不回來。樞紐格只能當落點，不能被拖走。</p>
+        <p>由外往內收：先讓角落、死格旁邊的葉子格消失，越中間的越晚動。</p>
+        <p>相同數字只在斜對角時，兩格共用兩個鄰格，至少要留一個當跳板。</p>
+        <p>全盤「每種數字偶數個」會因為總和是 2 的次方而自動成立，真正會卡住的永遠是連通。</p>
+        <p data-show="stone">石頭對戰：1.5 秒內接著合併算連擊，連擊到 3、5、7… 各丟一顆石頭，解完一題再丟兩顆。石頭會凍住對手一格 7 秒；合併的落點貼著石頭就能敲碎它。你丟出的石頭會先抵銷正要砸向你的。先解完 4 題的人贏。</p>
+      </details>
+    </aside>
+  </div>
+</div>
+
+<script>
+"use strict";
+const HOLE = -1;
+const DIFF = {
+  easy:   { R:4, C:4, holes:1, tiles:7,  top:5 },
+  normal: { R:5, C:5, holes:2, tiles:10, top:6 },
+  hard:   { R:5, C:5, holes:3, tiles:12, top:7 }
+};
+const LEVELS = {
+  casual: { race:2600, turnP:.25 },
+  normal: { race:1600, turnP:.7 },
+  hard:   { race:850,  turnP:1 }
+};
+const STONE = { target:4, freeze:7000, warn:1800, combo:1500, perClear:2 };
+
+/* ---------- geometry & rules ---------- */
+let R = 5, C = 5, NB = [];
+function setGeom(r, c){
+  R = r; C = c; NB = [];
+  for (let i = 0; i < r*c; i++){
+    const y = Math.floor(i/c), x = i % c, a = [];
+    if (y > 0) a.push(i-c); if (y < r-1) a.push(i+c);
+    if (x > 0) a.push(i-1); if (x < c-1) a.push(i+1);
+    NB.push(a);
+  }
+}
+const key = c => c.join(',');
+const rnd = n => Math.floor(Math.random()*n);
+const coord = i => String.fromCharCode(65 + i % C) + (Math.floor(i / C) + 1);
+function moves(c){
+  const out = [];
+  for (let i = 0; i < c.length; i++){
+    const v = c[i]; if (v <= 0) continue;
+    for (const j of NB[i]) if (c[j] === v) out.push([i, j]);
+  }
+  return out;
+}
+function apply(c, mv){ const n = c.slice(); n[mv[1]] = c[mv[1]]*2; n[mv[0]] = 0; return n; }
+function legal(c, f, t){ return c[f] > 0 && c[f] === c[t] && NB[f].includes(t); }
+function tiles(c){ let n = 0; for (const v of c) if (v > 0) n++; return n; }
+function deg(c, i){ let d = 0; for (const j of NB[i]) if (c[j] > 0) d++; return d; }
+function connected(c, skip = -1){
+  let start = -1, n = 0;
+  for (let i = 0; i < c.length; i++) if (c[i] > 0 && i !== skip){ n++; if (start < 0) start = i; }
+  if (n <= 1) return true;
+  const seen = new Uint8Array(c.length), st = [start]; seen[start] = 1; let k = 1;
+  while (st.length){
+    const i = st.pop();
+    for (const j of NB[i]) if (!seen[j] && c[j] > 0 && j !== skip){ seen[j] = 1; k++; st.push(j); }
+  }
+  return k === n;
+}
+function cutVertices(c){
+  const s = new Set();
+  if (tiles(c) <= 2) return s;
+  for (let i = 0; i < c.length; i++) if (c[i] > 0 && !connected(c, i)) s.add(i);
+  return s;
+}
+
+/* ---------- solo solver: DFS + memo + connectivity pruning ---------- */
+const memo = new Map();
+function solve(c){
+  const k = key(c), hit = memo.get(k);
+  if (hit) return hit.ok;
+  let res = { ok:false, move:null };
+  if (tiles(c) <= 1) res.ok = true;
+  else if (connected(c)){
+    const ms = moves(c).sort((a, b) => deg(c, a[0]) - deg(c, b[0]));
+    for (const mv of ms) if (solve(apply(c, mv))){ res = { ok:true, move:mv }; break; }
+  }
+  memo.set(k, res);
+  return res.ok;
+}
+function solutionPath(c){
+  const path = []; let cur = c;
+  while (tiles(cur) > 1){
+    if (!solve(cur)) break;
+    const mv = memo.get(key(cur)).move; path.push(mv); cur = apply(cur, mv);
+  }
+  return path;
+}
+
+/* ---------- two-player solver: last merge wins ---------- */
+const gmemo = new Map();
+function win(c){
+  const k = key(c), hit = gmemo.get(k);
+  if (hit) return hit.w;
+  let res = { w:false, m:null };
+  for (const mv of moves(c)) if (!win(apply(c, mv))){ res = { w:true, m:mv }; break; }
+  gmemo.set(k, res);
+  return res.w;
+}
+
+/* ---------- generator: reverse merges from a single tile ---------- */
+function makeBoard(cfg){
+  for (let attempt = 0; attempt < 200; attempt++){
+    const N = cfg.R*cfg.C, c = new Array(N).fill(0);
+    let h = 0; while (h < cfg.holes){ const i = rnd(N); if (c[i] === 0){ c[i] = HOLE; h++; } }
+    const free = []; for (let i = 0; i < N; i++) if (c[i] === 0) free.push(i);
+    c[free[rnd(free.length)]] = 2 ** cfg.top;
+    let n = 1, ok = true;
+    while (n < cfg.tiles){
+      const cand = [];
+      for (let i = 0; i < N; i++) if (c[i] >= 2) for (const j of NB[i]) if (c[j] === 0) cand.push([i, j, Math.log2(c[i])]);
+      if (!cand.length){ ok = false; break; }
+      let r = Math.random()*cand.reduce((a, x) => a + x[2], 0), pick = cand[0];
+      for (const x of cand){ r -= x[2]; if (r <= 0){ pick = x; break; } }
+      c[pick[0]] /= 2; c[pick[1]] = c[pick[0]]; n++;
+    }
+    if (ok) return c;
+  }
+  return null;
+}
+function analyze(c){
+  let wins = 0, traps = 0, obvious = 0; const ms = moves(c);
+  for (const mv of ms){
+    const n = apply(c, mv);
+    if (!connected(n)) obvious++; else if (solve(n)) wins++; else traps++;
+  }
+  return { total:ms.length, wins, traps, obvious };
+}
+function pickPuzzle(cfg){
+  setGeom(cfg.R, cfg.C);
+  if (memo.size > 300000) memo.clear();
+  let best = null; const t0 = performance.now();
+  for (let k = 0; k < 16; k++){
+    const c = makeBoard(cfg); if (!c) continue;
+    const a = analyze(c); if (!a.wins) continue;
+    const score = a.traps*2 + a.obvious*.5 - a.wins*.3 + Math.random();
+    if (!best || score > best.score) best = { c, a, score };
+    if (best && performance.now() - t0 > 900) break;
+  }
+  return best;
+}
+
+/* ---------- app state ---------- */
+const $ = s => document.querySelector(s);
+const S = { mode:'practice', diff:'normal', level:'normal', showCut:true, showInfo:true, showEval:false, aiFirst:false };
+let timers = [];
+const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+const fmt = ms => (ms/1000).toFixed(1) + ' 秒';
+function setMsg(t, tone = ''){ const m = $('#msg'); m.textContent = t; m.dataset.tone = tone; }
+function getBest(){ try { const v = localStorage.getItem('sb-best-' + S.diff); return v ? +v : null; } catch(e){ return null; } }
+function setBest(ms){ try { localStorage.setItem('sb-best-' + S.diff, String(ms)); } catch(e){} }
+
+function newGame(){
+  clearTimers(); S.locked = true; S.t0 = null; S.finished = true; setMsg('出題中…');
+  const cfg = { ...DIFF[S.diff] };
+  if (S.mode === 'turn') cfg.tiles = Math.min(cfg.tiles, 10);
+  setTimeout(() => {
+    if (S.mode === 'stone'){
+      S.seq = []; for (let k = 0; k < STONE.target; k++) S.seq.push(pickPuzzle(cfg));
+      S.start = S.seq[0].c; S.info = S.seq[0].a;
+    } else { const p = pickPuzzle(cfg); S.start = p.c; S.info = p.a; }
+    gmemo.clear();
+    startRound();
+  }, 30);
+}
+function startRound(){
+  clearTimers();
+  Object.assign(S, { cells:S.start.slice(), history:[], log:[], sel:null, drag:null, hint:null, pop:null,
+    finished:false, t0:null, tEnd:null, hints:0, auto:false, lastAi:null, aiPop:null });
+  if (S.mode === 'practice'){ S.locked = false; setMsg('合到只剩一格，第一步開始計時'); }
+  if (S.mode === 'race'){
+    S.aiCells = S.start.slice(); S.aiPath = solutionPath(S.start); S.aiIdx = 0; S.locked = true; countdown();
+  }
+  if (S.mode === 'stone'){
+    S.start = S.seq[0].c; S.cells = S.start.slice();
+    Object.assign(S, { aiCells:S.seq[0].c.slice(), yi:0, aiI:0, frozen:new Map(), aiFrozen:new Map(), inc:[], aiInc:[],
+      clr:{ you:0, ai:0 }, combo:{ you:0, ai:0 }, last:{ you:0, ai:0 }, flash:{ you:null, ai:null }, drop:null, aiDrop:null });
+    S.locked = true; countdown();
+  }
+  if (S.mode === 'turn'){
+    S.turn = S.aiFirst ? 'ai' : 'you'; S.locked = S.turn !== 'you';
+    if (S.turn === 'ai'){ setMsg('AI 思考中…'); later(aiTurn, 900); } else setMsg('輪到你。合最後一步的人贏');
+  }
+  render();
+}
+function countdown(){
+  ['3', '2', '1'].forEach((t, k) => later(() => setMsg(t), k*650));
+  later(() => {
+    S.locked = false; S.t0 = performance.now(); setMsg('開始');
+    if (S.mode === 'stone') later(aiStoneTick, aiDelay(true)); else scheduleAI();
+    render();
+  }, 1950);
+}
+function scheduleAI(){
+  if (S.finished) return;
+  const d = LEVELS[S.level].race * (.75 + Math.random()*.5) * (S.aiIdx === 0 ? 1.6 : 1);
+  later(() => {
+    if (S.finished) return;
+    const mv = S.aiPath[S.aiIdx];
+    S.aiCells = apply(S.aiCells, mv); S.aiPop = mv[1]; S.aiIdx++;
+    if (S.aiIdx >= S.aiPath.length) finishRace('ai'); else scheduleAI();
+    render();
+  }, d);
+}
+function finishRace(who){
+  S.finished = true; S.locked = true; S.tEnd = performance.now(); clearTimers();
+  if (who === 'you') setMsg('你先完成了' + (S.hints ? `（用了 ${S.hints} 次提示）` : ''), 'good');
+  else setMsg('AI 先完成了，按「重來」再挑戰同一題', 'bad');
+}
+
+function canMove(f, t){
+  if (!legal(S.cells, f, t)) return false;
+  return !(S.mode === 'stone' && (S.frozen.has(f) || S.frozen.has(t)));
+}
+function playerMove(f, t){
+  if (S.locked || S.finished || !canMove(f, t)) return;
+  if (S.mode === 'practice' && S.t0 == null) S.t0 = performance.now();
+  const v = S.cells[f];
+  S.history.push(S.cells);
+  if (S.mode === 'stone'){
+    S.log.push({ who:'you', f, t, v }); S.sel = null; S.hint = null; S.pop = t;
+    const cleared = stoneMerge('you', [f, t]);
+    if (!cleared && !S.finished){
+      if (!solve(S.cells)) setMsg('這步之後已經無解，按「重來」從頭再來這一題', 'bad');
+      else setMsg(`還剩 ${tiles(S.cells)} 格`);
+    }
+    render(); return;
+  }
+  S.cells = apply(S.cells, [f, t]);
+  S.log.push({ who:'you', f, t, v }); S.sel = null; S.hint = null; S.pop = t; S.lastAi = null;
+  afterMove('you'); render();
+}
+function afterMove(who){
+  const n = tiles(S.cells);
+  if (S.mode === 'turn'){
+    S.turn = who === 'you' ? 'ai' : 'you';
+    if (!moves(S.cells).length){
+      S.finished = true; S.locked = true;
+      if (S.turn === 'ai') setMsg(n === 1 ? '你合了最後一步，你贏了' : 'AI 已經沒有能合的格子，你贏了', 'good');
+      else setMsg(n === 1 ? 'AI 合了最後一步，AI 贏' : '你已經沒有能合的格子，AI 贏', 'bad');
+      return;
+    }
+    if (S.turn === 'ai'){ S.locked = true; setMsg('AI 思考中…'); later(aiTurn, 650 + Math.random()*450); }
+    else { S.locked = false; setMsg('輪到你'); }
+    return;
+  }
+  if (n === 1){
+    if (S.mode === 'race'){ finishRace('you'); return; }
+    S.finished = true; S.locked = true; S.tEnd = performance.now();
+    if (S.auto){ setMsg('自動解完成（不計時）', 'good'); return; }
+    const ms = S.tEnd - S.t0, best = getBest(), clean = !S.hints;
+    if (clean && (best == null || ms < best)){ setBest(ms); setMsg(`完成，${fmt(ms)}，新紀錄`, 'good'); }
+    else setMsg(`完成，${fmt(ms)}` + (S.hints ? `（用了 ${S.hints} 次提示，不列入紀錄）` : ''), 'good');
+    return;
+  }
+  if (S.auto) return;
+  if (!solve(S.cells)) setMsg('這步之後已經無解，' + (S.mode === 'practice' ? '按「上一步」或「重來」' : '按「重來」從頭再來'), 'bad');
+  else setMsg(`還剩 ${n} 格`);
+}
+function aiTurnMove(c){
+  const ms = moves(c); if (!ms.length) return null;
+  if (Math.random() < LEVELS[S.level].turnP){
+    win(c); const e = gmemo.get(key(c));
+    if (e.w) return e.m;
+    let best = null, bs = Infinity;
+    for (const mv of ms){
+      const n = apply(c, mv); let w = 0;
+      for (const m2 of moves(n)) if (!win(apply(n, m2))) w++;
+      const sc = w + Math.random()*.5; if (sc < bs){ bs = sc; best = mv; }
+    }
+    return best;
+  }
+  return ms[rnd(ms.length)];
+}
+function aiTurn(){
+  if (S.finished || S.mode !== 'turn') return;
+  const mv = aiTurnMove(S.cells); if (!mv) return;
+  const v = S.cells[mv[0]];
+  S.cells = apply(S.cells, mv); S.log.push({ who:'ai', f:mv[0], t:mv[1], v });
+  S.pop = mv[1]; S.lastAi = mv; afterMove('ai'); render();
+}
+
+/* ---------- stone battle ---------- */
+const FZ = w => w === 'you' ? S.frozen : S.aiFrozen;
+const INC = w => w === 'you' ? S.inc : S.aiInc;
+const aiDelay = first => LEVELS[S.level].race * (.75 + Math.random()*.5) * (first ? 1.6 : 1);
+function flash(w, text){ S.flash[w] = { text, until: performance.now() + 1600 }; }
+function stoneLine(w){
+  const parts = [], q = INC(w), f = S.flash[w];
+  if (q.length) parts.push(`<span class="incoming">即將落下 ${q.length} 顆石頭</span>`);
+  if (f && f.until > performance.now()) parts.push(f.text);
+  return parts.join('　') || (w === 'you' ? '連續快速合併、解完一題，都會丟石頭給對手' : '');
+}
+function sendStones(from, n){
+  const mine = INC(from), cancel = Math.min(n, mine.length);
+  mine.splice(0, cancel); n -= cancel;
+  const opp = from === 'you' ? 'ai' : 'you', at = performance.now() + STONE.warn;
+  for (let k = 0; k < n; k++) INC(opp).push(at);
+  return { cancel, sent:n };
+}
+function stoneMerge(w, mv){
+  const now = performance.now();
+  const c = apply(w === 'you' ? S.cells : S.aiCells, mv);
+  if (w === 'you') S.cells = c; else S.aiCells = c;
+  const fr = FZ(w); let broke = 0;
+  for (const j of NB[mv[1]]) if (fr.has(j)){ fr.delete(j); broke++; }
+  S.combo[w] = now - S.last[w] <= STONE.combo ? S.combo[w] + 1 : 1; S.last[w] = now;
+  let n = 0; if (S.combo[w] >= 3 && S.combo[w] % 2 === 1) n++;
+  const cleared = tiles(c) === 1;
+  if (cleared){ S.clr[w]++; n += STONE.perClear; }
+  const bits = [];
+  if (broke) bits.push(`敲碎 ${broke} 顆石頭`);
+  if (S.combo[w] >= 2) bits.push(`連擊 ×${S.combo[w]}`);
+  if (n){ const r = sendStones(w, n); if (r.cancel) bits.push(`抵銷 ${r.cancel} 顆`); if (r.sent) bits.push(`丟出 ${r.sent} 顆`); }
+  if (bits.length) flash(w, bits.join('，'));
+  if (cleared){
+    if (S.clr[w] >= STONE.target){ finishStone(w); return true; }
+    later(() => nextPuzzle(w), 450);
+  }
+  return cleared;
+}
+function nextPuzzle(w){
+  if (S.finished) return;
+  if (w === 'you'){
+    S.yi++; S.start = S.seq[S.yi].c; S.cells = S.start.slice(); S.history = []; S.sel = null; S.hint = null; S.frozen.clear();
+    S.log.push({ who:'sys', text:`第 ${S.yi + 1} 題` }); setMsg(`第 ${S.yi + 1} 題`);
+  } else {
+    S.aiI++; S.aiCells = S.seq[S.aiI].c.slice(); S.aiFrozen.clear();
+    later(aiStoneTick, aiDelay(true));
+  }
+  render();
+}
+function finishStone(w){
+  S.finished = true; S.locked = true; S.tEnd = performance.now(); clearTimers();
+  if (w === 'you') setMsg(`你先解完 ${STONE.target} 題，你贏了`, 'good');
+  else setMsg(`AI 先解完 ${STONE.target} 題，按「新題目」再來一場`, 'bad');
+}
+function aiStoneTick(){
+  if (S.finished || S.mode !== 'stone' || tiles(S.aiCells) <= 1) return;
+  const c = S.aiCells, fr = S.aiFrozen;
+  const ok = moves(c).filter(m => !fr.has(m[0]) && !fr.has(m[1]) && solve(apply(c, m)));
+  if (!ok.length){ later(aiStoneTick, 350); return; }
+  solve(c); const best = memo.get(key(c)).move;
+  const breaking = ok.filter(m => NB[m[1]].some(j => fr.has(j)));
+  const mv = breaking[0] || ok.find(m => m[0] === best[0] && m[1] === best[1]) || ok[0];
+  S.aiPop = mv[1];
+  const cleared = stoneMerge('ai', mv);
+  if (!cleared && !S.finished) later(aiStoneTick, aiDelay(false));
+  render();
+}
+function landAndThaw(w, now){
+  const fr = FZ(w), q = INC(w), c = w === 'you' ? S.cells : S.aiCells; let changed = false;
+  for (const [i, exp] of fr) if (exp <= now){ fr.delete(i); changed = true; }
+  while (q.length && q[0] <= now){
+    const cand = []; for (let i = 0; i < c.length; i++) if (c[i] > 0 && !fr.has(i)) cand.push(i);
+    if (tiles(c) <= 1 || !cand.length) break;
+    const i = cand[rnd(cand.length)]; fr.set(i, now + STONE.freeze); q.shift(); changed = true;
+    if (w === 'you'){ S.drop = i; if (S.sel === i) S.sel = null; } else S.aiDrop = i;
+  }
+  return changed;
+}
+let stoneSig = '';
+setInterval(() => {
+  if (S.mode !== 'stone' || S.finished || !S.t0) return;
+  const now = performance.now();
+  const ch = landAndThaw('you', now) | landAndThaw('ai', now);
+  const secs = m => [...m.values()].map(e => Math.ceil((e - now)/1000)).join(',');
+  const fl = ['you', 'ai'].map(w => S.flash[w] && S.flash[w].until > now ? 1 : 0).join('');
+  const sig = secs(S.frozen) + '|' + secs(S.aiFrozen) + '|' + S.inc.length + '|' + S.aiInc.length + '|' + fl;
+  if (ch || sig !== stoneSig){ stoneSig = sig; render(); }
+}, 100);
+
+/* ---------- buttons ---------- */
+function hint(){
+  if (S.finished || S.locked) return;
+  let mv = null;
+  if (S.mode === 'turn'){
+    win(S.cells); const e = gmemo.get(key(S.cells));
+    if (!e.w){ setMsg('目前沒有必勝步，AI 不失誤的話你會輸', 'bad'); return; }
+    mv = e.m;
+  } else {
+    if (!solve(S.cells)){ setMsg('目前盤面已經無解', 'bad'); return; }
+    mv = memo.get(key(S.cells)).move;
+    if (S.mode === 'stone' && (S.frozen.has(mv[0]) || S.frozen.has(mv[1]))){
+      mv = moves(S.cells).find(m => canMove(m[0], m[1]) && solve(apply(S.cells, m)));
+      if (!mv){ setMsg('能走的步都被石頭擋住了，等它解凍'); return; }
+    }
+  }
+  S.hints++; S.hint = mv; render();
+  later(() => { if (S.hint === mv){ S.hint = null; render(); } }, 1800);
+}
+function undo(){
+  if (S.mode !== 'practice' || !S.history.length || S.finished) return;
+  S.cells = S.history.pop(); S.log.pop(); S.sel = null; S.hint = null;
+  setMsg(`還剩 ${tiles(S.cells)} 格`); render();
+}
+function autoSolve(){
+  if (S.mode !== 'practice' || S.finished) return;
+  const path = solutionPath(S.cells);
+  if (!path.length){ setMsg('目前盤面已經無解，先按「上一步」', 'bad'); return; }
+  S.auto = true; S.locked = true; S.sel = null; setMsg('自動解中…');
+  path.forEach((mv, k) => later(() => {
+    const v = S.cells[mv[0]];
+    S.history.push(S.cells); S.cells = apply(S.cells, mv);
+    S.log.push({ who:'sys-auto', f:mv[0], t:mv[1], v }); S.pop = mv[1];
+    afterMove('auto'); render();
+  }, 500 + k*600));
+}
+function reset(){
+  if (!S.start) return;
+  if (S.mode === 'stone'){
+    if (S.finished || !S.t0) return;
+    const k = S.frozen.size; S.frozen.clear();
+    for (let n = 0; n < k; n++) S.inc.unshift(performance.now());
+    S.cells = S.start.slice(); S.history = []; S.sel = null; S.hint = null;
+    S.log.push({ who:'sys', text:'重來' }); setMsg('從頭再來這一題，身上的石頭會重新落下'); render(); return;
+  }
+  if (S.mode === 'race' && !S.finished && S.t0){
+    S.cells = S.start.slice(); S.history = []; S.sel = null; S.hint = null;
+    S.log.push({ who:'sys', text:'重來' }); setMsg('從頭再來，時間照算'); render(); return;
+  }
+  startRound();
+}
+
+/* ---------- rendering ---------- */
+function drawBoard(el, cells, o){
+  // Build the cells once per board shape, then only update them in place.
+  // Replacing the element under a finger mid-drag makes some browsers drop the touch.
+  const geom = R + 'x' + C;
+  if (el.dataset.geom !== geom || el.children.length !== cells.length){
+    el.dataset.geom = geom; el.style.setProperty('--cols', C);
+    el.innerHTML = cells.map((_, i) => o.interactive
+      ? `<button class="cell" data-i="${i}"></button>` : `<div class="cell" data-i="${i}"></div>`).join('');
+  }
+  const targets = new Set();
+  if (o.sel != null) for (const j of NB[o.sel]) if (cells[j] === cells[o.sel] && !(o.frozen && o.frozen.has(j))) targets.add(j);
+  for (let i = 0; i < cells.length; i++){
+    const v = cells[i], cls = ['cell'];
+    if (v === HOLE) cls.push('hole'); else if (v === 0) cls.push('empty');
+    if (i === o.sel) cls.push('sel');
+    if (targets.has(i)) cls.push('target');
+    if (o.cut && o.cut.has(i)) cls.push('pivot');
+    if (o.hint && o.hint[0] === i) cls.push('hint-from');
+    if (o.hint && o.hint[1] === i) cls.push('hint-to');
+    if (o.pop === i) cls.push('pop');
+    if (o.lastAi && o.lastAi[1] === i) cls.push('ai-last');
+    const node = el.children[i];
+    if (o.frozen && o.frozen.has(i)){
+      cls.push('frozen');
+      node.dataset.sec = Math.max(1, Math.ceil((o.frozen.get(i) - performance.now())/1000));
+    } else delete node.dataset.sec;
+    if (o.drop === i) cls.push('drop');
+    if (o.pop === i){ node.className = ''; void node.offsetWidth; }
+    node.className = cls.join(' ');
+    const e = v > 0 ? Math.min(8, Math.log2(v)) : 0;
+    const want = v > 0 ? String(v) : '';
+    if (node.dataset.v !== want){
+      node.dataset.v = want;
+      node.innerHTML = v > 0 ? `<span class="tile" style="background:var(--t${e});color:var(--x${e})">${v}</span>` : '';
+    }
+    if (o.interactive){
+      node.setAttribute('aria-label', coord(i) + (v > 0 ? '，' + v + (o.cut && o.cut.has(i) ? '，樞紐格' : '') : v === HOLE ? '，死格' : '，空格'));
+      node.disabled = v === HOLE;
+    }
+  }
+}
+function render(){
+  document.querySelectorAll('[data-show]').forEach(n => n.hidden = !n.dataset.show.split(' ').includes(S.mode));
+  if (!S.cells) return;
+  const cut = S.showCut && !S.finished ? cutVertices(S.cells) : null;
+  const stone = S.mode === 'stone';
+  drawBoard($('#you-board'), S.cells, { interactive:true, sel:S.sel, hint:S.hint, pop:S.pop, cut, lastAi:S.lastAi,
+    frozen: stone ? S.frozen : null, drop: stone ? S.drop : null });
+  S.pop = null; S.drop = null;
+  const pips = n => `<span class="pips" aria-label="已解 ${n} 題">${'●'.repeat(n)}${'○'.repeat(STONE.target - n)}</span>`;
+  $('#youTitle').innerHTML = (S.mode === 'turn' ? '共用盤面' : '你的盤面') + (stone ? pips(S.clr.you) : '');
+  $('#aiTitle').innerHTML = 'AI 的盤面' + (stone ? pips(S.clr.ai) : '');
+
+  const aiBox = $('#ai-box'); aiBox.hidden = !(S.mode === 'race' || stone);
+  if (S.mode === 'race' && S.aiCells){
+    drawBoard($('#ai-board'), S.aiCells, { pop:S.aiPop }); S.aiPop = null;
+    $('#aiUnder').textContent = `第 ${S.aiIdx} / ${S.aiPath.length} 步`;
+  }
+  if (stone){
+    drawBoard($('#ai-board'), S.aiCells, { pop:S.aiPop, frozen:S.aiFrozen, drop:S.aiDrop }); S.aiPop = null; S.aiDrop = null;
+    $('#aiUnder').innerHTML = stoneLine('ai');
+  }
+
+  let under = '';
+  if (S.mode === 'practice' && S.showInfo && S.info){
+    const a = S.info;
+    under = `開局 ${a.total} 種合法步：${a.wins} 步可解、${a.traps} 步是陷阱（盤面還連著但已無解）、${a.obvious} 步直接把盤面切斷`;
+  }
+  if (S.mode === 'turn' && !S.finished){
+    if (S.showEval){
+      const w = win(S.cells);
+      under = S.turn === 'you'
+        ? (w ? '局勢：你現在必勝，存在一步讓 AI 怎麼下都輸' : '局勢：你現在必敗（AI 不失誤的話）')
+        : (w ? '局勢：AI 現在必勝' : '局勢：AI 現在必敗');
+    } else under = `第 ${S.log.length + 1} 手，${S.turn === 'you' ? '你' : 'AI'}下`;
+  }
+  if (stone) under = stoneLine('you');
+  if (S.sel != null && cut && cut.has(S.sel) && !S.finished)
+    under = '這格是樞紐：拖走它盤面會斷成兩塊，它只適合當落點';
+  $('#under').innerHTML = under;
+
+  const best = getBest();
+  $('#best').textContent = best != null ? `這個難度的最佳紀錄：${fmt(best)}` : '這個難度還沒有紀錄';
+
+  const ol = $('#log');
+  ol.innerHTML = S.log.map(x => {
+    if (x.who === 'sys') return `<li class="sys">— ${x.text} —</li>`;
+    const who = x.who === 'ai' ? 'AI' : x.who === 'sys-auto' ? '自動' : '你';
+    return `<li class="${x.who === 'ai' ? 'ai' : ''}">${who}　${coord(x.f)} → ${coord(x.t)}　${x.v}+${x.v}=${x.v*2}</li>`;
+  }).join('');
+  ol.scrollTop = ol.scrollHeight;
+
+  $('#bUndo').disabled = !S.history.length || S.finished || S.locked;
+  $('#bHint').disabled = S.finished || S.locked;
+  $('#bAuto').disabled = S.finished || S.locked;
+}
+setInterval(() => {
+  const t = $('#timer');
+  if (S.mode === 'turn'){ t.textContent = ''; return; }
+  t.textContent = S.t0 ? fmt((S.tEnd || performance.now()) - S.t0) : '0.0 秒';
+}, 100);
+
+/* ---------- input: drag or tap-tap ---------- */
+const board = $('#you-board');
+function press(i, dragging){
+  if (S.locked || S.finished) return;
+  if (S.sel != null && i !== S.sel && canMove(S.sel, i)){ playerMove(S.sel, i); return; }
+  if (S.mode === 'stone' && S.frozen.has(i)){ S.sel = null; setMsg('這格被石頭凍住了，落點貼著它合併就能敲碎'); render(); return; }
+  if (S.cells[i] > 0){ S.sel = (S.sel === i && !dragging) ? null : i; if (dragging) S.drag = i; }
+  else S.sel = null;
+  render();
+}
+// Drop target = the neighbour in the direction you dragged, once you've moved
+// about a third of a cell. Works even if you let go in the gap between cells.
+function dropTarget(from, x, y){
+  const r = board.children[from].getBoundingClientRect();
+  const dx = x - (r.left + r.width/2), dy = y - (r.top + r.height/2);
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < r.width*0.35) return null;
+  const col = from % C;
+  let t;
+  if (Math.abs(dx) > Math.abs(dy)) t = dx > 0 ? (col < C-1 ? from+1 : -1) : (col > 0 ? from-1 : -1);
+  else t = dy > 0 ? from + C : from - C;
+  return t >= 0 && t < S.cells.length ? t : null;
+}
+let over = null, wasSel = false;
+function setOver(t){
+  if (over === t) return;
+  if (over != null && board.children[over]) board.children[over].classList.remove('drag-over');
+  over = t;
+  if (t != null) board.children[t].classList.add('drag-over');
+}
+board.addEventListener('pointerdown', e => {
+  const cell = e.target.closest('.cell'); if (!cell) return;
+  e.preventDefault();
+  const i = +cell.dataset.i;
+  wasSel = S.sel === i;
+  press(i, true);
+  if (S.drag != null){ try { board.setPointerCapture(e.pointerId); } catch(err){} }
+});
+board.addEventListener('pointermove', e => {
+  if (S.drag == null) return;
+  const t = dropTarget(S.drag, e.clientX, e.clientY);
+  setOver(t != null && canMove(S.drag, t) ? t : null);
+});
+board.addEventListener('pointerup', e => {
+  if (S.drag == null) return;
+  const from = S.drag; S.drag = null; setOver(null);
+  const t = dropTarget(from, e.clientX, e.clientY);
+  if (t == null){ if (wasSel){ S.sel = null; render(); } return; }
+  if (canMove(from, t)){ playerMove(from, t); return; }
+  if (S.mode === 'stone' && S.frozen.has(t)) setMsg('那格被石頭凍住了，等它解凍或在旁邊合併敲碎');
+  else if (S.cells[t] > 0) setMsg('只有數字相同的兩格才能合併');
+});
+board.addEventListener('pointercancel', () => { S.drag = null; setOver(null); });
+board.addEventListener('click', e => {
+  if (e.detail !== 0) return; // keyboard activation only
+  const cell = e.target.closest('.cell'); if (cell) press(+cell.dataset.i, false);
+});
+
+function segment(id, prop, onChange){
+  const seg = $(id);
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    S[prop] = b.dataset.v; onChange();
+  });
+}
+segment('#modeSeg', 'mode', newGame);
+segment('#diffSeg', 'diff', newGame);
+segment('#lvlSeg', 'level', () => { if (S.mode !== 'practice') startRound(); });
+$('#bNew').onclick = newGame;
+$('#bReset').onclick = reset;
+$('#bUndo').onclick = undo;
+$('#bHint').onclick = hint;
+$('#bAuto').onclick = autoSolve;
+$('#tCut').onchange = e => { S.showCut = e.target.checked; render(); };
+$('#tInfo').onchange = e => { S.showInfo = e.target.checked; render(); };
+
+newGame();
+</script>
+</body>
+</html>
