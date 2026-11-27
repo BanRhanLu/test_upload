@@ -104,7 +104,8 @@ header h1{margin:0;font-size:clamp(30px,5.5vw,44px);font-weight:900;letter-spaci
   background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.2),transparent 55%),var(--stone);
   box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
 .boardbox.ai .cell.frozen::after{font-size:11px}
-.cell.drop::after{animation:drop .3s ease-in}
+.cell.drop .tile{animation:crack .45s ease-out}
+@keyframes crack{0%{transform:scale(1.3) rotate(-10deg);filter:brightness(1.6)}50%{transform:scale(.9) rotate(4deg)}100%{transform:none;filter:none}}
 @keyframes drop{0%{transform:translateY(-45%) scale(1.25);opacity:0}100%{transform:none;opacity:.93}}
 .incoming{color:var(--warn);font-weight:700}
 .pips{letter-spacing:.15em;margin-left:.5em;color:var(--gozu)}
@@ -170,7 +171,7 @@ header h1{margin:0;font-size:clamp(30px,5.5vw,44px);font-weight:900;letter-spaci
         <p>由外往內收：先讓角落、死格旁邊的葉子格消失，越中間的越晚動。</p>
         <p>相同數字只在斜對角時，兩格共用兩個鄰格，至少要留一個當跳板。</p>
         <p>全盤「每種數字偶數個」會因為總和是 2 的次方而自動成立，真正會卡住的永遠是連通。</p>
-        <p data-show="stone">石頭對戰：1.5 秒內接著合併算連擊，連擊到 3、5、7… 各丟一顆石頭，解完一題再丟兩顆。石頭會凍住對手一格 7 秒；合併的落點貼著石頭就能敲碎它。你丟出的石頭會先抵銷正要砸向你的。先解完 4 題的人贏。</p>
+        <p data-show="stone">石頭對戰：1.5 秒內接著合併算連擊，連擊到 3、5、7… 各丟一顆石頭，解完一題再丟兩顆。石頭砸下來會把對手的一格數字砸裂成兩半，裂出來的那半會掉到旁邊的空格。這剛好是合併倒過來，所以題目永遠解得開，只是多一步要合、樹的形狀也可能跟著變。你丟出的石頭會先抵銷正要砸向你的。先解完 4 題的人贏。</p>
       </details>
     </aside>
   </div>
@@ -494,7 +495,7 @@ function stoneMerge(w, mv){
 function nextPuzzle(w){
   if (S.finished) return;
   if (w === 'you'){
-    S.yi++; S.start = S.seq[S.yi].c; S.cells = S.start.slice(); S.history = []; S.sel = null; S.hint = null; S.frozen.clear();
+    S.yi++; S.start = S.seq[S.yi].c; S.cells = S.start.slice(); S.history = []; S.sel = null; S.hint = null; S.frozen.clear(); S.hits = 0;
     S.log.push({ who:'sys', text:`第 ${S.yi + 1} 題` }); setMsg(`第 ${S.yi + 1} 題`);
   } else {
     S.aiI++; S.aiCells = S.seq[S.aiI].c.slice(); S.aiFrozen.clear();
@@ -520,15 +521,25 @@ function aiStoneTick(){
   if (!cleared && !S.finished) later(aiStoneTick, aiDelay(false));
   render();
 }
+// A stone cracks one of the target's tiles in half, onto an empty neighbouring cell.
+// That is exactly a merge played backwards, so a solvable board stays solvable:
+// it only costs the receiver one extra merge (plus some re-reading).
 function landAndThaw(w, now){
-  const fr = FZ(w), q = INC(w), c = w === 'you' ? S.cells : S.aiCells; let changed = false;
+  const fr = FZ(w), q = INC(w); let changed = false, hits = 0;
   for (const [i, exp] of fr) if (exp <= now){ fr.delete(i); changed = true; }
   while (q.length && q[0] <= now){
-    const cand = []; for (let i = 0; i < c.length; i++) if (c[i] > 0 && !fr.has(i)) cand.push(i);
-    if (tiles(c) <= 1 || !cand.length) break;
-    const i = cand[rnd(cand.length)]; fr.set(i, now + STONE.freeze); q.shift(); changed = true;
-    if (w === 'you'){ S.drop = i; if (S.sel === i) S.sel = null; } else S.aiDrop = i;
+    const c = w === 'you' ? S.cells : S.aiCells;
+    if (tiles(c) <= 1) break;
+    const cand = [];
+    for (let i = 0; i < c.length; i++) if (c[i] >= 2) for (const j of NB[i]) if (c[j] === 0) cand.push([i, j]);
+    q.shift(); changed = true;
+    if (!cand.length) continue;
+    const [i, j] = cand[rnd(cand.length)];
+    const n = c.slice(); n[i] = c[i] / 2; n[j] = n[i]; hits++;
+    if (w === 'you'){ S.cells = n; S.drop = [i, j]; S.hits = (S.hits || 0) + 1; if (S.sel === i) S.sel = null; }
+    else { S.aiCells = n; S.aiDrop = [i, j]; }
   }
+  if (hits) flash(w, `被石頭砸裂 ${hits} 格`);
   return changed;
 }
 let stoneSig = '';
@@ -582,7 +593,7 @@ function reset(){
   if (!S.start) return;
   if (S.mode === 'stone'){
     if (S.finished || !S.t0) return;
-    const k = S.frozen.size; S.frozen.clear();
+    const k = S.hits || 0; S.hits = 0; S.frozen.clear();
     for (let n = 0; n < k; n++) S.inc.unshift(performance.now());
     S.cells = S.start.slice(); S.history = []; S.sel = null; S.hint = null;
     S.log.push({ who:'sys', text:'重來' }); setMsg('從頭再來這一題，身上的石頭會重新落下'); render(); return;
@@ -621,7 +632,7 @@ function drawBoard(el, cells, o){
       cls.push('frozen');
       node.dataset.sec = Math.max(1, Math.ceil((o.frozen.get(i) - performance.now())/1000));
     } else delete node.dataset.sec;
-    if (o.drop === i) cls.push('drop');
+    if (o.drop && (o.drop === i || (Array.isArray(o.drop) && o.drop.includes(i)))) cls.push('drop');
     if (o.pop === i){ node.className = ''; void node.offsetWidth; }
     node.className = cls.join(' ');
     const e = v > 0 ? Math.min(8, Math.log2(v)) : 0;
